@@ -1,0 +1,40 @@
+name: brew-deploy
+
+on:
+  release:
+    types: [published]
+    workflow_dispatch:
+
+jobs:
+  update-homebrew:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Calculate SHA-256 checksum
+        run: |
+          tarball_url=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r '.tarball_url')
+          curl -L $tarball_url -o rustsay.tar.gz
+          sha256=$(shasum -a 256 rustsay.tar.gz | awk '{ print $1 }')
+          echo "SHA256=$sha256" >> $GITHUB_ENV
+
+      - name: Update Homebrew formula
+        run: |
+          version=${{ github.event.release.tag_name }}
+          sha256=$SHA256
+          sed -i.bak "s|^  url.*|  url \"https://github.com/${{ github.repository }}/archive/$version.tar.gz\"|" Formula/rustsay.rb
+          sed -i.bak "s|^  sha256.*|  sha256 \"$sha256\"|" Formula/rustsay.rb
+          rm Formula/rustsay.rb.bak
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/rustsay.rb
+          git commit -m "Update Homebrew formula for $version"
+          git push origin main

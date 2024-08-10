@@ -1,0 +1,20 @@
+[package]
+name = "rustsay"
+version = "0.2.0"
+edition = "2021"
+license = "MIT"
+keywords = ["cowsay", "rustsay", "cli", "terminal", "ascii"]
+categories = ["command-line-utilities", "text-processing"]
+description = "A simple CLI tool in Rust that mimics the classic cowsay program, allowing a cow to speak your text in the terminal."
+authors = ["space7panda <space7panda@gmail.com>"]
+repository = "https://github.com/space7panda/rustsay"
+homepage = "https://github.com/space7panda/rustsay"
+readme = "README.md"
+
+[dependencies]
+clap = { version = "4.5.15", features = ["derive"] }
+textwrap = "0.16.1"
+
+[[bin]]
+name = "rustsay"
+path = "src/main.rs"
